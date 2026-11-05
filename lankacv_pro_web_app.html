@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="si" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LankaCV Pro - Automated CV & Cover Letter Generator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Sinhala:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- html2pdf.js for Direct 1-Click PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+            background-color: #f1f5f9;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Exact A4 Paper Simulation (794px x 1122px at 96 DPI) */
+        .a4-sheet {
+            background: #ffffff;
+            width: 794px;
+            min-height: 1122px;
+            height: 1122px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background 0.2s ease, border 0.2s ease;
+        }
+
+        /* Balanced Full-Page Flex Distribution so sections never clump at top */
+        .cv-body-sections {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            gap: 10px;
+            padding: 6px 0;
+        }
+
+        /* Theme Styles for CV */
+        .theme-basic {
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+        }
+        .theme-basic .cv-header {
+            border-bottom: 2.5px solid #0f172a;
+            padding-bottom: 14px;
+            margin-bottom: 6px;
+        }
+        .theme-basic .cv-section-title {
+            color: #0f172a;
+            border-bottom: 1.5px solid #334155;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 12px;
+        }
+        .theme-basic .accent-text { color: #334155; }
+        .theme-basic .skill-badge {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+        }
+
+        /* VIP Royal Blue & Gold Theme */
+        .theme-royal {
+            color: #0f172a;
+            border: 1px solid #bfdbfe;
+        }
+        .theme-royal .cv-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #ffffff;
+            margin: -28px -32px 10px -32px;
+            padding: 24px 32px 20px 32px;
+            border-bottom: 4px solid #f59e0b;
+        }
+        .theme-royal .cv-header .sub-info { color: #e2e8f0; }
+        .theme-royal .cv-header .job-role-badge {
+            color: #fbbf24;
+        }
+        .theme-royal .cv-section-title {
+            color: #1e3a8a;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 12px;
+        }
+        .theme-royal .accent-text { color: #1d4ed8; }
+        .theme-royal .skill-badge {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        /* VIP Emerald Executive Theme */
+        .theme-emerald {
+            color: #0f172a;
+            border: 1px solid #a7f3d0;
+        }
+        .theme-emerald .cv-header {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            color: #ffffff;
+            margin: -28px -32px 10px -32px;
+            padding: 24px 32px 20px 32px;
+            border-bottom: 4px solid #34d399;
+        }
+        .theme-emerald .cv-header .sub-info { color: #ecfdf5; }
+        .theme-emerald .cv-header .job-role-badge {
+            color: #6ee7b7;
+        }
+        .theme-emerald .cv-section-title {
+            color: #065f46;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 12px;
+        }
+        .theme-emerald .accent-text { color: #047857; }
+        .theme-emerald .skill-badge {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        /* Diagonal Proof Watermark */
+        .security-watermark {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            overflow: hidden;
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(220, 38, 38, 0.035),
+                rgba(220, 38, 38, 0.035) 20px,
+                transparent 20px,
+                transparent 40px
+            );
+        }
+        .security-watermark span {
+            transform: rotate(-30deg);
+            font-size: 1.55rem;
+            font-weight: 900;
+            color: rgba(220, 38, 38, 0.24);
+            border: 3px dashed rgba(220, 38, 38, 0.28);
+            padding: 8px 24px;
+            border-radius: 12px;
+            white-space: nowrap;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        @media print {
+            html, body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 210mm;
+                height: 297mm;
+                overflow: hidden;
+            }
+            .no-print { display: none !important; }
+            main, .max-w-7xl, .lg\:col-span-6, #cvPreviewWrapper, #clPreviewWrapper {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
+                overflow: visible !important;
+            }
+            .a4-sheet {
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+
+    <!-- Custom Toast Notification -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300">
+        <div class="bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 text-xs sm:text-sm font-semibold">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+            <span id="toastMsg">සාර්ථකයි!</span>
+        </div>
+    </div>
+
+    <!-- Top Admin & Owner Controls Bar -->
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white w-10 h-10 rounded-xl font-black text-lg flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-base sm:text-lg tracking-tight">LankaCV <span class="text-amber-400">Pro</span></h1>
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">Auto v3.0</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">ලංකාවේ සහ රට රැකියා සඳහා ඔටෝ CV හා Cover Letter සාදන්නා</p>
+                </div>
+            </div>
+
+            <!-- Owner Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="loadSampleClient()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs px-3 py-2 rounded-xl font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-check"></i> Sample Client දාලා බලන්න
+                </button>
+                <button onclick="toggleModal('whatsappModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs px-3 py-2 rounded-xl font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp text-emerald-400 text-sm"></i> <span class="hidden sm:inline">078 973 3432</span> (Setup)
+                </button>
+                <button onclick="toggleOwnerPanel()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 text-xs px-3.5 py-2 rounded-xl font-extrabold shadow-md transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-crown"></i> 🔐 Owner VIP Tool
+                </button>
+            </div>
+        </div>
+
+        <!-- Collapsible Owner Secret VIP Panel -->
+        <div id="ownerVipPanel" class="hidden bg-slate-950 border-t border-slate-800 px-4 py-4">
+            <div class="max-w-7xl mx-auto space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Owner Secret VIP Control Panel (තත්පර 5න් රු. 600 VIP CV සහ Cover Letter හදන තැන)
+                        </h3>
+                        <p class="text-xs text-slate-400">පාරිභෝගිකයා WhatsApp (078 973 3432) එකට එවන <code class="text-amber-300">LANKACV:...</code> කේතය පහතින් Paste කර Auto-Fill ඔබන්න.</p>
+                    </div>
+                    <button onclick="toggleOwnerPanel()" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-3 py-1.5 rounded-lg">
+                        <i class="fa-solid fa-xmark mr-1"></i> Close Panel
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+                    <!-- Code Paste Box -->
+                    <div class="lg:col-span-4 flex gap-2">
+                        <input type="text" id="importCodeInput" placeholder="LANKACV:eyJ... කේතය මෙතනට Paste කරන්න" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-amber-400">
+                        <button onclick="importClientCode()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs whitespace-nowrap shadow">
+                            <i class="fa-solid fa-bolt mr-1"></i> Auto-Fill
+                        </button>
+                    </div>
+
+                    <!-- Theme Switcher -->
+                    <div class="lg:col-span-4 flex flex-wrap items-center gap-1.5">
+                        <span class="text-xs text-slate-400 font-semibold mr-1">Theme:</span>
+                        <button onclick="selectPreviewMode('basic')" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-white border border-slate-600 font-semibold">
+                            Free B&W
+                        </button>
+                        <button onclick="selectPreviewMode('royal')" class="text-xs px-2.5 py-1.5 rounded-lg bg-blue-900/60 text-amber-300 border border-amber-500/40 font-bold">
+                            👑 Royal VIP
+                        </button>
+                        <button onclick="selectPreviewMode('emerald')" class="text-xs px-2.5 py-1.5 rounded-lg bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 font-bold">
+                            💎 Emerald VIP
+                        </button>
+                    </div>
+
+                    <!-- Watermark & Direct Owner-Only Unwatermarked VIP Export -->
+                    <div class="lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
+                        <label class="flex items-center gap-1.5 bg-red-950/60 border border-red-800/60 text-red-200 px-2.5 py-2 rounded-xl text-[11px] font-bold cursor-pointer select-none">
+                            <input type="checkbox" id="watermarkToggle" onchange="toggleSecurityWatermark()" class="rounded text-red-600 focus:ring-0">
+                            <span>🔒 Proof Watermark</span>
+                        </label>
+                        <button onclick="ownerDownloadUnlockedPDF('cv')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-3 py-2 rounded-xl text-xs shadow flex items-center gap-1">
+                            <i class="fa-solid fa-crown"></i> VIP CV PDF
+                        </button>
+                        <button onclick="ownerDownloadUnlockedPDF('cl')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-3 py-2 rounded-xl text-xs shadow flex items-center gap-1">
+                            <i class="fa-solid fa-envelope-open-text"></i> Cover Letter PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+
+        <!-- Hero Value Banner -->
+        <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-6 md:p-8 mb-6 shadow-xl border border-blue-800/40 relative overflow-hidden no-print">
+            <div class="max-w-3xl relative z-10">
+                <div class="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-bold px-3 py-1 rounded-full mb-3">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> ඉංග්‍රීසි දැනුම අවශ්‍ය නැත • සිංහලෙන් තෝරන්න, ඉංග්‍රීසියෙන් ඔටෝ හැදෙනවා!
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">විනාඩි 2න් ඔබේම Professional CV එකක් නොමිලේ හදාගන්න!</h2>
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                    පහත පියවර 5 හි ඇති ප්‍රශ්නවලට පිළිතුරු දෙන්න. ඔබේ ෆොටෝ එක, සුදුසුකම් සහ නිර්දේශකයින් (Referees) සමඟ සම්පූර්ණ A4 CV එකක් ස්වයංක්‍රීයව සැකසේ.
+                </p>
+            </div>
+        </div>
+
+        <!-- Two Column Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT COLUMN: 5-STEP AUTOMATED WIZARD -->
+            <div class="lg:col-span-6 bg-white rounded-3xl shadow-xl border border-slate-200/80 p-5 sm:p-6 no-print">
+
+                <!-- Step Progress Pills -->
+                <div class="grid grid-cols-5 gap-1.5 mb-6 bg-slate-100 p-1.5 rounded-2xl">
+                    <button type="button" onclick="goToStep(1)" id="tabStep1" class="step-tab py-2 px-1 rounded-xl text-[11px] font-extrabold transition bg-blue-600 text-white shadow">
+                        1. පුද්ගලික
+                    </button>
+                    <button type="button" onclick="goToStep(2)" id="tabStep2" class="step-tab py-2 px-1 rounded-xl text-[11px] font-bold transition text-slate-600 hover:bg-white">
+                        2. රැකියාව
+                    </button>
+                    <button type="button" onclick="goToStep(3)" id="tabStep3" class="step-tab py-2 px-1 rounded-xl text-[11px] font-bold transition text-slate-600 hover:bg-white">
+                        3. අධ්‍යාපන
+                    </button>
+                    <button type="button" onclick="goToStep(4)" id="tabStep4" class="step-tab py-2 px-1 rounded-xl text-[11px] font-bold transition text-slate-600 hover:bg-white">
+                        4. පළපුරුද්ද
+                    </button>
+                    <button type="button" onclick="goToStep(5)" id="tabStep5" class="step-tab py-2 px-1 rounded-xl text-[11px] font-bold transition text-slate-600 hover:bg-white">
+                        5. Referees/PDF
+                    </button>
+                </div>
+
+                <!-- STEP 1: PERSONAL DETAILS & PHOTO UPLOAD -->
+                <div id="stepPanel1" class="wizard-panel space-y-4">
+                    <div class="border-b border-slate-100 pb-2">
+                        <h3 class="font-extrabold text-base text-slate-900">පියවර 1: මූලික තොරතුරු සහ ඡායාරූපය (Personal Info & Photo)</h3>
+                        <p class="text-xs text-slate-500">අවශ්‍ය කොටස් පමණක් පුරවන්න. හිස්ව තබන කොටස් CV එකෙන් ඉබේම ඉවත් වේ.</p>
+                    </div>
+
+                    <!-- Photo Upload Card -->
+                    <div class="p-4 bg-blue-50/60 border border-blue-200 rounded-2xl space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <label class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-camera text-blue-600"></i> CV Photo එකක් දාන්න (Passport Size)
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <select id="photoShape" onchange="renderAll()" class="bg-white border border-slate-300 rounded-lg text-xs px-2.5 py-1 font-semibold text-slate-700">
+                                    <option value="square">Passport කොටුව (Square)</option>
+                                    <option value="circle">රවුම් හැඩය (Circle)</option>
+                                </select>
+                                <button type="button" onclick="removePhoto()" class="bg-red-100 hover:bg-red-200 text-red-700 text-xs px-2.5 py-1 rounded-lg font-bold transition">
+                                    <i class="fa-solid fa-trash-can"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                        <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoUpload(event)" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">සම්පූර්ණ නම (Full Name) *</label>
+                            <input type="text" id="fullName" value="Kasun Madushanka Perera" oninput="renderAll()" placeholder="උදා: Kasun Madushanka Perera" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ඉල්ලුම් කරන තනතුර (Target Job Title) *</label>
+                            <input type="text" id="targetJobTitle" value="Accounts & Administration Assistant" oninput="renderAll()" placeholder="උදා: Cashier / Customer Service Executive / Driver" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">දුරකථන අංකය (Phone) *</label>
+                            <input type="text" id="phone" value="+94 77 456 7890" oninput="renderAll()" placeholder="077 123 4567" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ඊමේල් ලිපිනය (Email)</label>
+                            <input type="email" id="email" value="kasun.perera@email.com" oninput="renderAll()" placeholder="name@gmail.com" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ලිපිනය (Address)</label>
+                            <input type="text" id="address" value="No. 142/B, Galle Road, Panadura, Sri Lanka" oninput="renderAll()" placeholder="No. 45, Main Street, Colombo" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">උපන්දිනය (Date of Birth)</label>
+                            <input type="text" id="dob" value="14th May 1999" oninput="renderAll()" placeholder="14th May 1999 (හෝ හිස්ව තබන්න)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ජා.හැ.අංකය / Passport (NIC / Passport)</label>
+                            <input type="text" id="nic" value="199913501234" oninput="renderAll()" placeholder="199913501234 / N1234567" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ජාතිකත්වය (Nationality)</label>
+                            <input type="text" id="nationality" value="Sri Lankan" oninput="renderAll()" placeholder="Sri Lankan" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">විවාහක/අවිවාහක (Civil Status)</label>
+                            <select id="civilStatus" onchange="renderAll()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="Single">Single (අවිවාහක)</option>
+                                <option value="Married">Married (විවාහක)</option>
+                                <option value="">CV එකට දාන්න එපා (Hide)</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">භාෂා හැකියාව (Languages)</label>
+                            <input type="text" id="languages" value="Sinhala (Native), English (Fluent)" oninput="renderAll()" placeholder="Sinhala, English, Tamil" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: JOB CATEGORY & AUTO ENGLISH GENERATOR -->
+                <div id="stepPanel2" class="wizard-panel space-y-4 hidden">
+                    <div class="border-b border-slate-100 pb-2">
+                        <h3 class="font-extrabold text-base text-slate-900">පියවර 2: රැකියා කාණ්ඩය සහ හැකියාවන් (Auto English Builder)</h3>
+                        <p class="text-xs text-slate-500">රැකියා කාණ්ඩය තෝරා සිංහලෙන් ඇති කොටු ටික් කරන්න. ඉංග්‍රීසි විස්තර ඉබේම හැදේ!</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">රැකියා කාණ්ඩය තෝරන්න (Select Job Preset)</label>
+                        <select id="jobPreset" onchange="applyJobPreset()" class="w-full bg-blue-50 border border-blue-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold text-blue-950 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="office">🏢 Office / Admin / Accounts / Data Entry (කාර්යාල රැකියා)</option>
+                            <option value="sales">🛒 Cashier / Sales / Supermarket / Customer Care (වෙළඳ/කැෂියර්)</option>
+                            <option value="driver">🚗 Driver / Delivery / Logistics / Warehouse (රියදුරු/ගබඩා)</option>
+                            <option value="hotel">🍽️ Hotel / Waiter / Steward / Kitchen / Barista (හෝටල් රැකියා)</option>
+                            <option value="caregiver">🩺 Caregiver / Nursing / Gulf Jobs / Housekeeping (රට රැකියා/සාත්තු සේවා)</option>
+                            <option value="it">💻 IT / Graphic Design / Technician / Engineering (තාක්ෂණික)</option>
+                            <option value="fresher">🎓 School Leaver / Trainee / Banking Intern (පළපුරුද්ද නැති අය සඳහා)</option>
+                        </select>
+                    </div>
+
+                    <!-- Auto Skills Checkboxes -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">ඔබ සතු කුසලතා ටික් කරන්න (Click to Add English Skills):</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="MS Office (Word, Excel, PowerPoint) & Data Entry" checked onchange="renderAll()"> පරිගණක හා MS Office දැනුම</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Excellent Customer Service & Public Relations" checked onchange="renderAll()"> පාරිභෝගික සේවා සහ සුහදශීලී බව</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Cash Handling, Billing & POS Machine Operation" onchange="renderAll()"> මුදල් ගනුදෙනු සහ බිල්පත් (POS/Cash)</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Bookkeeping, Invoicing & Financial Documentation" checked onchange="renderAll()"> ගිණුම් තැබීම සහ ලිපිගොනු පාලනය</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Strong Time Management & Punctuality" checked onchange="renderAll()"> වේලාවට වැඩ කිරීම සහ කැපවීම</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Team Leadership & Problem-Solving Ability" checked onchange="renderAll()"> කණ්ඩායම් හැඟීම සහ ගැටලු විසඳීම</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Inventory Control & Stock Management" onchange="renderAll()"> බඩු තොග පාලනය (Stock Control)</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Safe Driving, Route Planning & Vehicle Maintenance" onchange="renderAll()"> ආරක්ෂිත රිය පැදවීම සහ මාර්ග දැනුම</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Food Safety, Hygiene & Hospitality Standards" onchange="renderAll()"> හෝටල් ආගන්තුක සත්කාර සහ පිරිසිදුකම</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="skill-cb rounded text-blue-600" value="Patient Care, Elderly Assistance & First Aid" onchange="renderAll()"> රෝගී/වැඩිහිටි සාත්තු සේවය සහ ප්‍රථමාධාර</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">වෙනත් කුසලතා ඇත්නම් කොමාවකින් වෙන් කර ලියන්න (Custom Skills)</label>
+                        <input type="text" id="customSkills" placeholder="උදා: QuickBooks, Email Etiquette, Graphic Design" oninput="renderAll()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Profile Summary (ස්වයංක්‍රීයව හැදේ, අවශ්‍ය නම් වෙනස් කළ හැක)</label>
+                        <textarea id="profileSummary" rows="3" oninput="renderAll()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">Dedicated, detail-oriented, and results-driven professional seeking a position as an Accounts & Administration Assistant. Proven ability to manage office operations, maintain accurate documentation, and deliver exceptional organizational support.</textarea>
+                    </div>
+                </div>
+
+                <!-- STEP 3: EDUCATION & EXTRA-CURRICULAR ACTIVITIES -->
+                <div id="stepPanel3" class="wizard-panel space-y-4 hidden">
+                    <div class="border-b border-slate-100 pb-2">
+                        <h3 class="font-extrabold text-base text-slate-900">පියවර 3: අධ්‍යාපන සහ බාහිර ක්‍රියාකාරකම් (Education & Achievements)</h3>
+                        <p class="text-xs text-slate-500">A4 පිටුව පිරිලා ලස්සනට පේන්න බාහිර ක්‍රියාකාරකම්ද ටික් කරන්න.</p>
+                    </div>
+
+                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                        <label class="block text-xs font-extrabold text-slate-800">1. උසස් පෙළ / උසස් අධ්‍යාපනය (G.C.E. A/L or Higher Ed)</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <input type="text" id="edu1Title" value="G.C.E. Advanced Level (Commerce Stream)" oninput="renderAll()" placeholder="G.C.E. A/L (Commerce)" class="sm:col-span-2 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                            <input type="text" id="edu1Year" value="2018" oninput="renderAll()" placeholder="වර්ෂය (2018)" class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <input type="text" id="edu1Details" value="Passed with 2 B's and 1 C (Accounting, Business Studies, Economics) - Royal College" oninput="renderAll()" placeholder="ප්‍රතිඵල සහ පාසල (උදා: Passed with 3 S passes)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                    </div>
+
+                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                        <label class="block text-xs font-extrabold text-slate-800">2. සාමාන්‍ය පෙළ (G.C.E. O/L Examination)</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <input type="text" id="edu2Title" value="G.C.E. Ordinary Level Examination" oninput="renderAll()" placeholder="G.C.E. O/L Examination" class="sm:col-span-2 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                            <input type="text" id="edu2Year" value="2015" oninput="renderAll()" placeholder="වර්ෂය (2015)" class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <input type="text" id="edu2Details" value="Passed with 6 A's and 3 B's including Mathematics & English" oninput="renderAll()" placeholder="Passed with Credits for Mathematics & English" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                    </div>
+
+                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                        <label class="block text-xs font-extrabold text-slate-800">3. වෘත්තීය පාඨමාලා / ඩිප්ලෝමා (Diplomas / NVQ / Courses)</label>
+                        <textarea id="certifications" rows="2" oninput="renderAll()" placeholder="එක පේළියකට එක පාඨමාලාව බැගින් ලියන්න" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs">Diploma in Computerized Accounting & MS Office (IDM Nations Campus - 2019)
+Certificate in Spoken English & Business Communication (British Way English Academy)</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">බාහිර ක්‍රියාකාරකම් සහ සහතික (Extra-Curricular Achievements - ටික් කරන්න):</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="extra-cb rounded text-blue-600" value="Served as a Senior School Prefect and demonstrated strong student leadership." checked onchange="renderAll()"> පාසල් ශිෂ්‍ය නායක (School Prefect)</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="extra-cb rounded text-blue-600" value="Active member of School Sports Teams and participated in Inter-House Athletics." checked onchange="renderAll()"> පාසල් ක්‍රීඩා සහ මලල ක්‍රීඩා සාමාජික</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="extra-cb rounded text-blue-600" value="Office bearer in School Literary, Commerce & Community Service Societies." checked onchange="renderAll()"> පාසල් සමිති සහ සමාජ සේවා කටයුතු</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="extra-cb rounded text-blue-600" value="Participated in Leadership, Teamwork & Youth Development Workshops." onchange="renderAll()"> නායකත්ව පුහුණු වැඩමුළු</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: WORK EXPERIENCE BUILDER -->
+                <div id="stepPanel4" class="wizard-panel space-y-4 hidden">
+                    <div class="border-b border-slate-100 pb-2 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-extrabold text-base text-slate-900">පියවර 4: රැකියා පළපුරුද්ද (Work Experience)</h3>
+                            <p class="text-xs text-slate-500">කලින් වැඩ කර ඇති තැන් 1ක් හෝ 2ක් ඇතුළත් කරන්න.</p>
+                        </div>
+                        <label class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-900 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">
+                            <input type="checkbox" id="isFresherToggle" onchange="renderAll()" class="rounded text-amber-600">
+                            <span>පළපුරුද්ද නැත (School Leaver)</span>
+                        </label>
+                    </div>
+
+                    <div id="experienceInputsContainer" class="space-y-4">
+                        <!-- Job 1 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                            <span class="text-xs font-extrabold text-blue-700 uppercase">පළමු රැකියාව (Most Recent Job)</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <input type="text" id="exp1Role" value="Accounts & Admin Executive" oninput="renderAll()" placeholder="තනතුර (Job Role)" class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold">
+                                <input type="text" id="exp1Duration" value="2022 - Present" oninput="renderAll()" placeholder="කාලසීමාව (2022 - Present)" class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                            </div>
+                            <input type="text" id="exp1Company" value="Apex Commercial Enterprises (Pvt) Ltd, Colombo" oninput="renderAll()" placeholder="ආයතනයේ නම (Company Name)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                            <textarea id="exp1Duties" rows="3" oninput="renderAll()" placeholder="කළ රාජකාරි (එක පේළියකට එක බැගින්)" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs">Managed daily bookkeeping, petty cash, invoicing, and bank reconciliations accurately.
+Coordinated office administration, customer inquiries, and supplier correspondence.
+Prepared monthly financial and inventory reports using MS Excel and accounting software.</textarea>
+                        </div>
+
+                        <!-- Job 2 (Optional) -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                            <span class="text-xs font-extrabold text-slate-600 uppercase">දෙවන රැකියාව (Previous Job - Optional / හිස්ව තැබිය හැක)</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <input type="text" id="exp2Role" value="Trainee Customer Service & Cashier" oninput="renderAll()" placeholder="තනතුර (Job Role)" class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold">
+                                <input type="text" id="exp2Duration" value="2020 - 2022" oninput="renderAll()" placeholder="කාලසීමාව (2020 - 2022)" class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                            </div>
+                            <input type="text" id="exp2Company" value="Cargills Food City, Panadura" oninput="renderAll()" placeholder="ආයතනයේ නම (Company Name)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                            <textarea id="exp2Duties" rows="2" oninput="renderAll()" placeholder="කළ රාජකාරි" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs">Handled POS billing, cash & card transactions, and assisted customers courteously.
+Assisted with daily stock balancing and shelf merchandising.</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 5: SMART REFEREES & DOWNLOAD / MONETIZATION -->
+                <div id="stepPanel5" class="wizard-panel space-y-4 hidden">
+                    <div class="border-b border-slate-100 pb-2 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-extrabold text-base text-slate-900">පියවර 5: නිර්දේශකයින් (Non-Related Referees) සහ PDF</h3>
+                            <p class="text-xs text-slate-500">Referees නැත්නම් ටික් එක අයින් කරන්න (හෝ නම් මකන්න) — එවිට CV එකෙන් එම කොටස ඉබේම ඉවත් වේ!</p>
+                        </div>
+                        <label class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer">
+                            <input type="checkbox" id="includeRefereesToggle" checked onchange="renderAll()" class="rounded text-blue-600">
+                            <span>Referees CV එකට දාන්න</span>
+                        </label>
+                    </div>
+
+                    <div id="refereeInputsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Referee 1 -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-extrabold text-slate-700 uppercase">Referee 1</span>
+                                <button type="button" onclick="clearReferee(1)" class="text-[11px] text-red-600 hover:underline font-semibold">හිස් කරන්න</button>
+                            </div>
+                            <input type="text" id="ref1Name" value="Mr. Nimal Jayawardena" oninput="renderAll()" placeholder="නම (Name)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold">
+                            <input type="text" id="ref1Title" value="Senior Manager" oninput="renderAll()" placeholder="තනතුර (Designation)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                            <input type="text" id="ref1Org" value="People's Bank, Panadura" oninput="renderAll()" placeholder="ආයතනය (Organization)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                            <input type="text" id="ref1Phone" value="+94 71 234 5678" oninput="renderAll()" placeholder="දුරකථන (Phone)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                            <input type="text" id="ref1Email" value="nimal.j@peoplesbank.lk" oninput="renderAll()" placeholder="ඊමේල් (Email - Optional)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                        </div>
+
+                        <!-- Referee 2 -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-extrabold text-slate-700 uppercase">Referee 2</span>
+                                <button type="button" onclick="clearReferee(2)" class="text-[11px] text-red-600 hover:underline font-semibold">හිස් කරන්න</button>
+                            </div>
+                            <input type="text" id="ref2Name" value="Mrs. Sanduni Wijesinghe" oninput="renderAll()" placeholder="නම (Name)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold">
+                            <input type="text" id="ref2Title" value="Chief Accountant" oninput="renderAll()" placeholder="තනතුර (Designation)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                            <input type="text" id="ref2Org" value="Apex Commercial (Pvt) Ltd" oninput="renderAll()" placeholder="ආයතනය (Organization)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                            <input type="text" id="ref2Phone" value="+94 77 987 6543" oninput="renderAll()" placeholder="දුරකථන (Phone)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                            <input type="text" id="ref2Email" value="sanduni@apexlk.com" oninput="renderAll()" placeholder="ඊමේල් (Email - Optional)" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+                        </div>
+                    </div>
+
+                    <!-- Free Download vs VIP Upgrade Action Box -->
+                    <div class="p-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl space-y-4 shadow-xl border border-indigo-500/30">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Ready to Download</span>
+                                <h4 class="text-base font-extrabold mt-1">ඔබේ CV එක සූදානම්!</h4>
+                                <p class="text-xs text-slate-300">නොමිලේ කළු-සුදු Basic PDF එක බාගන්න, නැත්නම් රු. 600කට වර්ණවත් VIP ATS CV + Cover Letter පැකේජයම ගන්න.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button type="button" onclick="downloadFreeBasicPDF()" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-bold py-3 px-4 rounded-2xl text-xs transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-download text-blue-400"></i> Download Free Basic PDF (B&W)
+                            </button>
+                            <button type="button" onclick="orderVipViaWhatsApp()" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black py-3 px-4 rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-base"></i> VIP CV + Cover Letter ගන්න (රු. 600)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Prev / Next Footer Buttons -->
+                <div class="flex items-center justify-between pt-5 border-t border-slate-100 mt-6">
+                    <button type="button" id="btnPrev" onclick="stepDelta(-1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs transition disabled:opacity-40">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> පෙර පියවර
+                    </button>
+                    <span id="stepCounterText" class="text-xs font-bold text-slate-400">පියවර 1 / 5</span>
+                    <button type="button" id="btnNext" onclick="stepDelta(1)" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition">
+                        ඊළඟ පියවර <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: LIVE A4 CV & COVER LETTER PREVIEW -->
+            <div class="lg:col-span-6 space-y-4">
+
+                <!-- Preview Mode Switcher (Shows Normal Free CV, VIP Royal, VIP Emerald & Auto Cover Letter) -->
+                <div class="bg-white p-3.5 rounded-2xl shadow-md border border-slate-200 space-y-3 no-print">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-eye text-blue-600"></i> සජීවී පෙරදසුන තෝරන්න (Select Preview Mode):
+                        </span>
+                        <span id="previewBadgeStatus" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                            📄 Free Basic Mode (නොමිලේ බාගත හැක)
+                        </span>
+                    </div>
+
+                    <!-- 4 Preview Tabs -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-100 p-1.5 rounded-xl">
+                        <button type="button" id="modeBtnBasic" onclick="selectPreviewMode('basic')" class="py-2 px-2 rounded-lg text-[11px] font-extrabold bg-blue-600 text-white shadow transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-file-lines"></i> 1. Free Normal CV
+                        </button>
+                        <button type="button" id="modeBtnRoyal" onclick="selectPreviewMode('royal')" class="py-2 px-2 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-white transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-crown text-amber-500"></i> 2. VIP Royal CV
+                        </button>
+                        <button type="button" id="modeBtnEmerald" onclick="selectPreviewMode('emerald')" class="py-2 px-2 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-white transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-gem text-emerald-600"></i> 3. VIP Emerald CV
+                        </button>
+                        <button type="button" id="modeBtnCL" onclick="selectPreviewMode('cl')" class="py-2 px-2 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-white transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-envelope-open-text text-indigo-600"></i> 4. Cover Letter
+                        </button>
+                    </div>
+
+                    <!-- Action Buttons Bar -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                        <button type="button" onclick="handlePublicDownloadClick()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-file-arrow-down text-blue-400"></i> Free Normal PDF බාගන්න
+                        </button>
+                        <button type="button" onclick="orderVipViaWhatsApp()" class="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow flex items-center justify-center gap-2 transition">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> VIP CV + Cover Letter ගන්න (රු. 600)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- A4 CV DOCUMENT CANVAS -->
+                <div id="cvPreviewWrapper" class="overflow-x-auto pb-4 flex justify-center">
+                    <div id="cvSheet" class="a4-sheet theme-basic px-8 py-7 shadow-2xl rounded-sm text-[11.5px] leading-relaxed">
+
+                        <!-- Security Proof Watermark (Automatically shown on VIP modes for public users) -->
+                        <div id="cvWatermarkOverlay" class="security-watermark hidden">
+                            <span>VIP PREVIEW ONLY • PAY RS. 600 TO UNLOCK</span>
+                            <span>WHATSAPP 078 973 3432 • LANKACV PRO</span>
+                            <span>VIP PREVIEW ONLY • PAY RS. 600 TO UNLOCK</span>
+                        </div>
+
+                        <!-- CV HEADER -->
+                        <div class="cv-header flex items-center justify-between gap-5 flex-shrink-0">
+                            <div class="flex-1 space-y-1.5">
+                                <h1 id="outName" class="text-2xl font-black uppercase tracking-wide leading-tight">KASUN MADUSHANKA PERERA</h1>
+                                <p id="outJobTitle" class="job-role-badge text-xs font-extrabold uppercase tracking-wider">Accounts & Administration Assistant</p>
+                                <div id="outContactBar" class="sub-info flex flex-wrap gap-x-4 gap-y-1 text-[11px] pt-1 font-medium">
+                                    <!-- Dynamically populated -->
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Profile Photo Container (Completely hidden if no photo) -->
+                            <div id="outPhotoContainer" class="flex-shrink-0">
+                                <img id="outPhotoImg" src="" alt="Profile" class="w-24 h-28 object-cover border-2 border-white shadow-md rounded-md">
+                            </div>
+                        </div>
+
+                        <!-- FLEX-DISTRIBUTED BODY SECTIONS (Fills A4 smoothly with no ugly bottom gap) -->
+                        <div id="cvInnerContent" class="cv-body-sections w-full">
+                            <!-- PROFESSIONAL SUMMARY -->
+                            <div id="secSummary">
+                                <h2 class="cv-section-title"><i class="fa-solid fa-user-tie mr-1.5"></i> Professional Profile</h2>
+                                <p id="outSummary" class="text-[11.5px] text-slate-700 leading-relaxed text-justify"></p>
+                            </div>
+
+                            <!-- WORK EXPERIENCE -->
+                            <div id="secExperience">
+                                <h2 class="cv-section-title"><i class="fa-solid fa-briefcase mr-1.5"></i> Work Experience</h2>
+                                <div id="outExperienceList" class="space-y-2.5"></div>
+                            </div>
+
+                            <!-- EDUCATION & QUALIFICATIONS -->
+                            <div id="secEducation">
+                                <h2 class="cv-section-title"><i class="fa-solid fa-graduation-cap mr-1.5"></i> Education & Professional Qualifications</h2>
+                                <div id="outEducationList" class="space-y-2"></div>
+                            </div>
+
+                            <!-- CORE COMPETENCIES & SKILLS -->
+                            <div id="secSkills">
+                                <h2 class="cv-section-title"><i class="fa-solid fa-gears mr-1.5"></i> Core Competencies & Technical Skills</h2>
+                                <div id="outSkillsList" class="flex flex-wrap gap-2 pt-1"></div>
+                            </div>
+
+                            <!-- EXTRA-CURRICULAR ACTIVITIES -->
+                            <div id="secExtra">
+                                <h2 class="cv-section-title"><i class="fa-solid fa-award mr-1.5"></i> Extra-Curricular Activities & Achievements</h2>
+                                <ul id="outExtraList" class="list-disc list-inside space-y-1 text-[11.5px] text-slate-700"></ul>
+                            </div>
+
+                            <!-- PERSONAL DETAILS GRID (Hides empty fields automatically) -->
+                            <div id="secPersonalGrid">
+                                <h2 class="cv-section-title"><i class="fa-solid fa-id-card mr-1.5"></i> Personal Particulars</h2>
+                                <div id="outPersonalParticulars" class="grid grid-cols-2 gap-x-8 gap-y-1.5 text-[11px]"></div>
+                            </div>
+
+                            <!-- SMART NON-RELATED REFEREES (Completely disappears if unchecked or empty) -->
+                            <div id="secReferees">
+                                <h2 class="cv-section-title"><i class="fa-solid fa-user-check mr-1.5"></i> Non-Related Referees</h2>
+                                <div id="outRefereesGrid" class="grid grid-cols-2 gap-6 pt-1 text-[11px]"></div>
+                            </div>
+                        </div>
+
+                        <!-- DECLARATION FOOTER (Always cleanly anchored at the bottom of the A4 sheet) -->
+                        <div id="cvFooterDeclaration" class="pt-3 border-t border-slate-300 text-[10.5px] text-slate-600 w-full flex-shrink-0">
+                            <p class="italic">I hereby certify that the above particulars furnished by me are true and accurate to the best of my knowledge.</p>
+                            <div class="flex justify-between items-end mt-3">
+                                <div>
+                                    <p class="font-bold text-slate-800" id="outSignDate">Date: 26/10/2026</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-slate-900 border-t border-slate-400 pt-1 px-4" id="outSignName">Kasun Madushanka Perera</p>
+                                    <p class="text-[9.5px] text-slate-400">Applicant Signature</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- A4 COVER LETTER DOCUMENT CANVAS (Zero top whitespace, clean business letter layout) -->
+                <div id="clPreviewWrapper" class="overflow-x-auto pb-4 hidden flex justify-center">
+                    <div id="clSheet" class="a4-sheet px-12 py-10 shadow-2xl rounded-sm text-xs leading-relaxed text-slate-800 border border-slate-200">
+                        <!-- Cover Letter Protective Watermark for Public Preview -->
+                        <div id="clWatermarkOverlay" class="security-watermark">
+                            <span>VIP COVER LETTER • PAY RS. 600 TO UNLOCK</span>
+                            <span>WHATSAPP 078 973 3432 • LANKACV PRO</span>
+                            <span>VIP COVER LETTER • PAY RS. 600 TO UNLOCK</span>
+                        </div>
+
+                        <div class="w-full space-y-6">
+                            <!-- Top Sender Header (No leading blank space) -->
+                            <div class="border-b-2 border-slate-900 pb-4">
+                                <h1 id="clOutName" class="text-2xl font-black uppercase text-slate-900 tracking-wide">KASUN MADUSHANKA PERERA</h1>
+                                <p id="clOutRole" class="text-xs font-extrabold text-blue-700 uppercase tracking-wider mt-0.5">Accounts & Administration Assistant</p>
+                                <p id="clOutContact" class="text-[11.5px] text-slate-600 mt-1.5 font-medium"></p>
+                            </div>
+
+                            <!-- Letter Body Content -->
+                            <div class="space-y-4 text-[12.5px] leading-7 text-slate-800">
+                                <p id="clOutDate" class="font-bold text-slate-800"></p>
+                                <div class="space-y-0.5">
+                                    <p class="font-extrabold text-slate-900">The Human Resources Manager,</p>
+                                    <p class="text-slate-700 font-medium">Hiring & Recruitment Department.</p>
+                                </div>
+                                <p class="font-bold text-slate-900 pt-1">Dear Sir / Madam,</p>
+                                <p class="font-extrabold text-slate-900 underline uppercase tracking-wide" id="clOutSubject"></p>
+                                <p id="clOutBody1" class="text-justify"></p>
+                                <p id="clOutBody2" class="text-justify"></p>
+                                <p id="clOutBody3" class="text-justify"></p>
+                                <p class="text-justify">
+                                    I have enclosed my Curriculum Vitae for your kind review. I would welcome the opportunity to discuss how my background, qualifications, and dedication can contribute positively to your organization during a personal interview.
+                                </p>
+                                <p>Thank you for your time and consideration.</p>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Sign-off -->
+                        <div class="pt-6 border-t border-slate-200 w-full">
+                            <p class="text-xs text-slate-700">Yours sincerely,</p>
+                            <p class="font-black text-slate-900 text-sm mt-5" id="clOutSign">Kasun Madushanka Perera</p>
+                            <p class="text-[11px] text-slate-500" id="clOutSignPhone"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- VIP UPGRADE LOCK MODAL (Prevents free downloading of VIP CV & Cover Letter) -->
+    <div id="vipLockModal" class="fixed inset-0 bg-slate-950/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm no-print">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-amber-200">
+            <button onclick="toggleModal('vipLockModal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-3">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <h3 class="font-black text-lg text-slate-900">මෙය රු. 600 VIP පැකේජයේ ඩිසයින් එකකි!</h3>
+            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                වර්ණවත් <strong>VIP ATS CV Design</strong> එක සහ <strong>Auto Cover Letter</strong> එක Watermark නොමැතිව පැහැදිලි PDF ලෙස ලබාගැනීමට රු. 600ක් පමණි. නැතහොත් ඔබට නොමිලේ ලැබෙන කළු-සුදු (Free Basic CV) එක දැන්ම බාගත හැක.
+            </p>
+            <div class="space-y-2.5 mt-5">
+                <button onclick="toggleModal('vipLockModal'); orderVipViaWhatsApp();" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black py-3.5 px-4 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-base"></i> රු. 600 ගෙවා VIP CV + Cover Letter ගන්න (WhatsApp)
+                </button>
+                <button onclick="toggleModal('vipLockModal'); downloadFreeBasicPDF();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download text-blue-600"></i> මට නොමිලේ ලැබෙන කළු-සුදු Basic CV එක බාගන්න
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WHATSAPP SETUP MODAL -->
+    <div id="whatsappModal" class="fixed inset-0 bg-slate-950/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm no-print">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="toggleModal('whatsappModal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-base text-slate-900">ඔයාගේ WhatsApp අංකය (078 973 3432)</h3>
+                    <p class="text-xs text-slate-500">VIP ඇණවුම් කෙලින්ම ඔයාගේ WhatsApp එකට ලැබේ.</p>
+                </div>
+            </div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">WhatsApp Number (94 සමඟ):</label>
+            <input type="text" id="ownerWaInput" value="94789733432" placeholder="94789733432" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm mb-4 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <button onclick="saveOwnerWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl text-xs shadow">
+                Save WhatsApp Number
+            </button>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPT -->
+    <script>
+        const DEFAULT_OWNER_WA = '94789733432';
+        let currentStep = 1;
+        const totalSteps = 5;
+        let currentTheme = 'basic';
+        let currentPreviewDoc = 'cv';
+        let photoDataUrl = '';
+
+        // Default Professional SVG Avatar for Sample Client
+        const sampleAvatarSvg = "data:image/svg+xml;utf8," + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240">
+                <rect width="200" height="240" fill="#dbeafe"/>
+                <circle cx="100" cy="85" r="42" fill="#1e3a8a"/>
+                <path d="M30 240 C30 165 170 165 170 240 Z" fill="#1e3a8a"/>
+                <path d="M82 172 L100 215 L118 172 Z" fill="#ffffff"/>
+                <path d="M96 178 L100 212 L104 178 Z" fill="#f59e0b"/>
+            </svg>
+        `);
+
+        // Job Category Presets
+        const jobPresets = {
+            office: {
+                title: "Accounts & Administration Assistant",
+                summary: "Dedicated, detail-oriented, and results-driven professional seeking a position as an Accounts & Administration Assistant. Proven ability to manage office operations, maintain accurate financial and administrative records, and deliver exceptional organizational support.",
+                skills: [0, 1, 3, 4, 5]
+            },
+            sales: {
+                title: "Cashier & Customer Service Executive",
+                summary: "Friendly, energetic, and reliable retail professional with hands-on experience in POS billing, cash handling, and customer service. Committed to providing a welcoming shopping experience and maintaining accurate daily sales records.",
+                skills: [0, 1, 2, 4, 6]
+            },
+            driver: {
+                title: "Light / Heavy Vehicle Driver & Logistics Assistant",
+                summary: "Punctual, safety-conscious, and experienced Driver possessing a clean driving record and thorough knowledge of Sri Lankan road networks. Skilled in timely delivery operations, vehicle maintenance, and courteous client coordination.",
+                skills: [1, 4, 6, 7]
+            },
+            hotel: {
+                title: "Food & Beverage Steward / Hospitality Associate",
+                summary: "Courteous and hardworking hospitality professional with strong knowledge of food safety, table service, and guest relations. Dedicated to upholding international hotel standards and ensuring guest satisfaction.",
+                skills: [1, 4, 5, 8]
+            },
+            caregiver: {
+                title: "Certified Caregiver & Healthcare Assistant",
+                summary: "Compassionate, patient, and certified Caregiver experienced in elderly care, patient mobility support, daily hygiene assistance, and vital sign monitoring. Dedicated to providing safe and dignified care.",
+                skills: [1, 4, 5, 9]
+            },
+            it: {
+                title: "IT Support Technician & Data Operator",
+                summary: "Tech-savvy and analytical IT professional skilled in computer hardware/software troubleshooting, network maintenance, MS Office automation, and accurate database management.",
+                skills: [0, 1, 4, 5]
+            },
+            fresher: {
+                title: "Trainee Banking & Management Associate",
+                summary: "Motivated, fast-learning, and disciplined recent school leaver with strong academic credentials, leadership qualities, and computer literacy. Eager to begin a professional career and contribute positively to organizational goals.",
+                skills: [0, 1, 4, 5]
+            }
+        };
+
+        function getOwnerWaNumber() {
+            const saved = localStorage.getItem('lankacv_owner_wa');
+            if (!saved || saved === '94771234567') {
+                localStorage.setItem('lankacv_owner_wa', DEFAULT_OWNER_WA);
+                return DEFAULT_OWNER_WA;
+            }
+            return saved;
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastMsg').innerText = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function toggleModal(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+            if (id === 'whatsappModal' && !el.classList.contains('hidden')) {
+                document.getElementById('ownerWaInput').value = getOwnerWaNumber();
+            }
+        }
+
+        function toggleOwnerPanel() {
+            document.getElementById('ownerVipPanel').classList.toggle('hidden');
+        }
+
+        function saveOwnerWhatsApp() {
+            const val = document.getElementById('ownerWaInput').value.replace(/[^0-9]/g, '');
+            if (val.length >= 9) {
+                localStorage.setItem('lankacv_owner_wa', val);
+                toggleModal('whatsappModal');
+                showToast('ඔයාගේ WhatsApp අංකය සාර්ථකව Save වුණා!');
+            } else {
+                showToast('කරුණාකර නිවැරදි WhatsApp අංකයක් ඇතුළත් කරන්න.');
+            }
+        }
+
+        // Wizard Step Navigation
+        function goToStep(step) {
+            currentStep = step;
+            for (let i = 1; i <= totalSteps; i++) {
+                const panel = document.getElementById('stepPanel' + i);
+                const tab = document.getElementById('tabStep' + i);
+                if (i === currentStep) {
+                    panel.classList.remove('hidden');
+                    tab.className = "step-tab py-2 px-1 rounded-xl text-[11px] font-extrabold transition bg-blue-600 text-white shadow";
+                } else {
+                    panel.classList.add('hidden');
+                    tab.className = "step-tab py-2 px-1 rounded-xl text-[11px] font-bold transition text-slate-600 hover:bg-white";
+                }
+            }
+            document.getElementById('btnPrev').disabled = (currentStep === 1);
+            document.getElementById('stepCounterText').innerText = `පියවර ${currentStep} / ${totalSteps}`;
+            const nextBtn = document.getElementById('btnNext');
+            if (currentStep === totalSteps) {
+                nextBtn.innerHTML = `<i class="fa-solid fa-file-arrow-down mr-1"></i> Free Basic PDF බාගන්න`;
+                nextBtn.onclick = () => handlePublicDownloadClick();
+            } else {
+                nextBtn.innerHTML = `ඊළඟ පියවර <i class="fa-solid fa-arrow-right ml-1"></i>`;
+                nextBtn.onclick = () => stepDelta(1);
+            }
+        }
+
+        function stepDelta(delta) {
+            const next = currentStep + delta;
+            if (next >= 1 && next <= totalSteps) goToStep(next);
+        }
+
+        // Photo Upload & Shape Handling
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                photoDataUrl = evt.target.result;
+                renderAll();
+                showToast('Photo එක CV එකට සාර්ථකව එකතු වුණා!');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePhoto() {
+            photoDataUrl = '';
+            document.getElementById('photoInput').value = '';
+            renderAll();
+            showToast('Photo එක CV එකෙන් ඉවත් කළා.');
+        }
+
+        // Apply Job Category Preset
+        function applyJobPreset() {
+            const key = document.getElementById('jobPreset').value;
+            const preset = jobPresets[key];
+            if (!preset) return;
+
+            document.getElementById('targetJobTitle').value = preset.title;
+            document.getElementById('profileSummary').value = preset.summary;
+
+            const cbs = document.querySelectorAll('.skill-cb');
+            cbs.forEach((cb, idx) => {
+                cb.checked = preset.skills.includes(idx);
+            });
+
+            document.getElementById('isFresherToggle').checked = (key === 'fresher');
+            renderAll();
+            showToast('රැකියා කාණ්ඩයට අදාළ ඉංග්‍රීසි විස්තර ඔටෝ ඇතුළත් වුණා!');
+        }
+
+        function clearReferee(num) {
+            ['Name', 'Title', 'Org', 'Phone', 'Email'].forEach(field => {
+                document.getElementById(`ref${num}${field}`).value = '';
+            });
+            renderAll();
+        }
+
+        // Unified 4-Mode Preview Selector (Free Normal CV, VIP Royal, VIP Emerald, Auto Cover Letter)
+        function selectPreviewMode(mode) {
+            const cvWrap = document.getElementById('cvPreviewWrapper');
+            const clWrap = document.getElementById('clPreviewWrapper');
+            const sheet = document.getElementById('cvSheet');
+            const cvWm = document.getElementById('cvWatermarkOverlay');
+            const clWm = document.getElementById('clWatermarkOverlay');
+            const badge = document.getElementById('previewBadgeStatus');
+
+            const btns = {
+                basic: document.getElementById('modeBtnBasic'),
+                royal: document.getElementById('modeBtnRoyal'),
+                emerald: document.getElementById('modeBtnEmerald'),
+                cl: document.getElementById('modeBtnCL')
+            };
+
+            Object.values(btns).forEach(b => {
+                b.className = "py-2 px-2 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-white transition flex items-center justify-center gap-1";
+            });
+
+            if (mode === 'cl') {
+                currentPreviewDoc = 'cl';
+                cvWrap.classList.add('hidden');
+                clWrap.classList.remove('hidden');
+                clWm.classList.remove('hidden');
+                btns.cl.className = "py-2 px-2 rounded-lg text-[11px] font-extrabold bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1";
+                badge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900";
+                badge.innerText = "👑 VIP Auto Cover Letter Preview (රු. 600 පැකේජය)";
+            } else {
+                currentPreviewDoc = 'cv';
+                currentTheme = mode;
+                cvWrap.classList.remove('hidden');
+                clWrap.classList.add('hidden');
+                sheet.classList.remove('theme-basic', 'theme-royal', 'theme-emerald');
+                sheet.classList.add('theme-' + mode);
+
+                if (mode === 'basic') {
+                    cvWm.classList.add('hidden');
+                    document.getElementById('watermarkToggle').checked = false;
+                    btns.basic.className = "py-2 px-2 rounded-lg text-[11px] font-extrabold bg-blue-600 text-white shadow transition flex items-center justify-center gap-1";
+                    badge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+                    badge.innerText = "📄 Free Basic Mode (නොමිලේ බාගත හැක)";
+                } else if (mode === 'royal') {
+                    cvWm.classList.remove('hidden');
+                    document.getElementById('watermarkToggle').checked = true;
+                    btns.royal.className = "py-2 px-2 rounded-lg text-[11px] font-extrabold bg-blue-900 text-amber-300 shadow transition flex items-center justify-center gap-1";
+                    badge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900";
+                    badge.innerText = "👑 VIP Royal Blue Preview (රු. 600 පැකේජය)";
+                } else if (mode === 'emerald') {
+                    cvWm.classList.remove('hidden');
+                    document.getElementById('watermarkToggle').checked = true;
+                    btns.emerald.className = "py-2 px-2 rounded-lg text-[11px] font-extrabold bg-emerald-800 text-emerald-200 shadow transition flex items-center justify-center gap-1";
+                    badge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900";
+                    badge.innerText = "💎 VIP Emerald Gold Preview (රු. 600 පැකේජය)";
+                }
+            }
+        }
+
+        function toggleSecurityWatermark() {
+            const checked = document.getElementById('watermarkToggle').checked;
+            const cvWm = document.getElementById('cvWatermarkOverlay');
+            const clWm = document.getElementById('clWatermarkOverlay');
+            if (checked) {
+                cvWm.classList.remove('hidden');
+                clWm.classList.remove('hidden');
+            } else {
+                cvWm.classList.add('hidden');
+                clWm.classList.add('hidden');
+            }
+        }
+
+        // Master Real-Time Renderer for CV & Cover Letter
+        function renderAll() {
+            const fullName = document.getElementById('fullName').value.trim() || 'YOUR FULL NAME';
+            const jobTitle = document.getElementById('targetJobTitle').value.trim() || 'Professional Applicant';
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const dob = document.getElementById('dob').value.trim();
+            const nic = document.getElementById('nic').value.trim();
+            const nationality = document.getElementById('nationality').value.trim();
+            const civilStatus = document.getElementById('civilStatus').value.trim();
+            const languages = document.getElementById('languages').value.trim();
+
+            // Header Info
+            document.getElementById('outName').innerText = fullName;
+            document.getElementById('outJobTitle').innerText = jobTitle;
+            document.getElementById('outSignName').innerText = fullName;
+
+            const todayStr = new Date().toLocaleDateString('en-GB');
+            document.getElementById('outSignDate').innerText = `Date: ${todayStr}`;
+
+            let contactHtml = '';
+            if (phone) contactHtml += `<span><i class="fa-solid fa-phone mr-1"></i>${phone}</span>`;
+            if (email) contactHtml += `<span><i class="fa-solid fa-envelope mr-1"></i>${email}</span>`;
+            if (address) contactHtml += `<span><i class="fa-solid fa-location-dot mr-1"></i>${address}</span>`;
+            document.getElementById('outContactBar').innerHTML = contactHtml;
+
+            // Profile Photo
+            const photoContainer = document.getElementById('outPhotoContainer');
+            const photoImg = document.getElementById('outPhotoImg');
+            const shape = document.getElementById('photoShape').value;
+
+            if (photoDataUrl) {
+                photoContainer.classList.remove('hidden');
+                photoImg.src = photoDataUrl;
+                if (shape === 'circle') {
+                    photoImg.className = "w-24 h-24 rounded-full object-cover border-2 border-white shadow-md";
+                } else {
+                    photoImg.className = "w-24 h-28 rounded-md object-cover border-2 border-white shadow-md";
+                }
+            } else {
+                photoContainer.classList.add('hidden');
+            }
+
+            // Profile Summary
+            const summaryText = document.getElementById('profileSummary').value.trim();
+            document.getElementById('outSummary').innerText = summaryText;
+
+            // Work Experience
+            const isFresher = document.getElementById('isFresherToggle').checked;
+            const expSection = document.getElementById('secExperience');
+            const expList = document.getElementById('outExperienceList');
+            document.getElementById('experienceInputsContainer').style.opacity = isFresher ? '0.4' : '1';
+
+            if (isFresher) {
+                expSection.classList.add('hidden');
+            } else {
+                let expHtml = '';
+                [1, 2].forEach(num => {
+                    const role = document.getElementById(`exp${num}Role`).value.trim();
+                    const dur = document.getElementById(`exp${num}Duration`).value.trim();
+                    const comp = document.getElementById(`exp${num}Company`).value.trim();
+                    const duties = document.getElementById(`exp${num}Duties`).value.trim();
+
+                    if (role || comp) {
+                        const bullets = duties.split('\n').map(l => l.trim()).filter(Boolean)
+                            .map(b => `<li>${b}</li>`).join('');
+                        expHtml += `
+                            <div>
+                                <div class="flex justify-between items-baseline">
+                                    <h3 class="font-extrabold text-slate-900 text-[12px]">${role}</h3>
+                                    <span class="text-[11px] font-bold accent-text">${dur}</span>
+                                </div>
+                                <p class="text-[11.5px] font-bold accent-text mb-1">${comp}</p>
+                                ${bullets ? `<ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-700">${bullets}</ul>` : ''}
+                            </div>
+                        `;
+                    }
+                });
+
+                if (expHtml) {
+                    expSection.classList.remove('hidden');
+                    expList.innerHTML = expHtml;
+                } else {
+                    expSection.classList.add('hidden');
+                }
+            }
+
+            // Education & Qualifications
+            let eduHtml = '';
+            [1, 2].forEach(num => {
+                const title = document.getElementById(`edu${num}Title`).value.trim();
+                const year = document.getElementById(`edu${num}Year`).value.trim();
+                const details = document.getElementById(`edu${num}Details`).value.trim();
+                if (title) {
+                    eduHtml += `
+                        <div>
+                            <div class="flex justify-between items-baseline">
+                                <span class="font-extrabold text-slate-900 text-[12px]">${title}</span>
+                                <span class="text-[11px] font-bold accent-text">${year}</span>
+                            </div>
+                            ${details ? `<p class="text-[11px] text-slate-700">${details}</p>` : ''}
+                        </div>
+                    `;
+                }
+            });
+
+            const certs = document.getElementById('certifications').value.trim();
+            if (certs) {
+                const certBullets = certs.split('\n').map(c => c.trim()).filter(Boolean)
+                    .map(c => `<li>${c}</li>`).join('');
+                eduHtml += `
+                    <div class="pt-1">
+                        <p class="font-extrabold text-slate-900 text-[11.5px] mb-0.5">Professional Diplomas & Certifications:</p>
+                        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-700">${certBullets}</ul>
+                    </div>
+                `;
+            }
+            document.getElementById('outEducationList').innerHTML = eduHtml;
+
+            // Skills
+            const checkedSkills = Array.from(document.querySelectorAll('.skill-cb:checked')).map(cb => cb.value);
+            const customSkillsRaw = document.getElementById('customSkills').value.split(',').map(s => s.trim()).filter(Boolean);
+            const allSkills = [...checkedSkills, ...customSkillsRaw];
+
+            document.getElementById('outSkillsList').innerHTML = allSkills
+                .map(s => `<span class="skill-badge px-2.5 py-1 rounded-md text-[11px] font-bold">${s}</span>`)
+                .join('');
+
+            // Extra-Curricular
+            const extras = Array.from(document.querySelectorAll('.extra-cb:checked')).map(cb => cb.value);
+            const secExtra = document.getElementById('secExtra');
+            if (extras.length > 0) {
+                secExtra.classList.remove('hidden');
+                document.getElementById('outExtraList').innerHTML = extras.map(e => `<li>${e}</li>`).join('');
+            } else {
+                secExtra.classList.add('hidden');
+            }
+
+            // Personal Particulars Grid (Smart auto-hide for empty fields)
+            const personalItems = [
+                { label: 'Date of Birth', val: dob },
+                { label: 'NIC / Passport No', val: nic },
+                { label: 'Nationality', val: nationality },
+                { label: 'Civil Status', val: civilStatus },
+                { label: 'Languages Known', val: languages }
+            ].filter(item => item.val !== '');
+
+            const secPersonal = document.getElementById('secPersonalGrid');
+            if (personalItems.length > 0) {
+                secPersonal.classList.remove('hidden');
+                document.getElementById('outPersonalParticulars').innerHTML = personalItems.map(item => `
+                    <div class="flex justify-between border-b border-slate-200/80 py-1">
+                        <span class="font-bold text-slate-600">${item.label}:</span>
+                        <span class="font-semibold text-slate-900">${item.val}</span>
+                    </div>
+                `).join('');
+            } else {
+                secPersonal.classList.add('hidden');
+            }
+
+            // Smart Non-Related Referees Logic
+            const includeRefs = document.getElementById('includeRefereesToggle').checked;
+            const secReferees = document.getElementById('secReferees');
+            const refGrid = document.getElementById('outRefereesGrid');
+            document.getElementById('refereeInputsContainer').style.opacity = includeRefs ? '1' : '0.4';
+
+            const ref1Name = document.getElementById('ref1Name').value.trim();
+            const ref1Title = document.getElementById('ref1Title').value.trim();
+            const ref1Org = document.getElementById('ref1Org').value.trim();
+            const ref1Phone = document.getElementById('ref1Phone').value.trim();
+            const ref1Email = document.getElementById('ref1Email').value.trim();
+
+            const ref2Name = document.getElementById('ref2Name').value.trim();
+            const ref2Title = document.getElementById('ref2Title').value.trim();
+            const ref2Org = document.getElementById('ref2Org').value.trim();
+            const ref2Phone = document.getElementById('ref2Phone').value.trim();
+            const ref2Email = document.getElementById('ref2Email').value.trim();
+
+            let refCardsHtml = '';
+            if (ref1Name) {
+                refCardsHtml += `
+                    <div class="space-y-0.5">
+                        <p class="font-extrabold text-slate-900 text-[12px]">${ref1Name}</p>
+                        ${ref1Title ? `<p class="text-slate-700 font-semibold">${ref1Title}</p>` : ''}
+                        ${ref1Org ? `<p class="text-slate-600">${ref1Org}</p>` : ''}
+                        ${ref1Phone ? `<p class="text-slate-700"><i class="fa-solid fa-phone mr-1 text-[10px]"></i>${ref1Phone}</p>` : ''}
+                        ${ref1Email ? `<p class="text-slate-600"><i class="fa-solid fa-envelope mr-1 text-[10px]"></i>${ref1Email}</p>` : ''}
+                    </div>
+                `;
+            }
+            if (ref2Name) {
+                refCardsHtml += `
+                    <div class="space-y-0.5">
+                        <p class="font-extrabold text-slate-900 text-[12px]">${ref2Name}</p>
+                        ${ref2Title ? `<p class="text-slate-700 font-semibold">${ref2Title}</p>` : ''}
+                        ${ref2Org ? `<p class="text-slate-600">${ref2Org}</p>` : ''}
+                        ${ref2Phone ? `<p class="text-slate-700"><i class="fa-solid fa-phone mr-1 text-[10px]"></i>${ref2Phone}</p>` : ''}
+                        ${ref2Email ? `<p class="text-slate-600"><i class="fa-solid fa-envelope mr-1 text-[10px]"></i>${ref2Email}</p>` : ''}
+                    </div>
+                `;
+            }
+
+            if (includeRefs && refCardsHtml !== '') {
+                secReferees.classList.remove('hidden');
+                refGrid.innerHTML = refCardsHtml;
+            } else {
+                secReferees.classList.add('hidden');
+                refGrid.innerHTML = '';
+            }
+
+            // Render Clean Structured Cover Letter (No leading whitespace)
+            document.getElementById('clOutName').innerText = fullName;
+            document.getElementById('clOutRole').innerText = jobTitle;
+            document.getElementById('clOutContact').innerText = [phone, email, address].filter(Boolean).join('  •  ');
+            document.getElementById('clOutDate').innerText = `Date: ${todayStr}`;
+            document.getElementById('clOutSubject').innerText = `APPLICATION FOR THE POST OF ${jobTitle.toUpperCase()}`;
+            document.getElementById('clOutBody1').innerText = `With reference to your vacancy announcement, I am writing to submit my application for the position of ${jobTitle} in your esteemed organization. ${summaryText}`;
+            document.getElementById('clOutBody2').innerText = `Throughout my academic and professional journey, I have developed strong competencies in ${allSkills.slice(0, 4).join(', ') || 'administration, teamwork, and customer relations'}. Furthermore, my qualifications (${document.getElementById('edu1Title').value || 'G.C.E. A/L & O/L'}) have provided me with a solid foundation to perform duties accurately and efficiently.`;
+            const exp1Role = document.getElementById('exp1Role').value.trim();
+            const exp1Comp = document.getElementById('exp1Company').value.trim();
+            document.getElementById('clOutBody3').innerText = (!isFresher && exp1Role)
+                ? `In my previous role as ${exp1Role} at ${exp1Comp || 'a reputable organization'}, I gained practical experience handling daily operations, coordinating tasks under pressure, and delivering high standards of service.`
+                : `As a dedicated and fast-learning individual, I possess strong leadership qualities, punctuality, and adaptability that will enable me to make an immediate and positive contribution to your team.`;
+            document.getElementById('clOutSign').innerText = fullName;
+            document.getElementById('clOutSignPhone').innerText = phone ? `Tel: ${phone}` : '';
+        }
+
+        // Public Download Handler: Blocks free downloading of VIP Themes or Cover Letter!
+        function handlePublicDownloadClick() {
+            if (currentPreviewDoc === 'cl' || currentTheme !== 'basic') {
+                // Show VIP Upgrade Modal explaining VIP/Cover Letter costs Rs. 600, or let them download Basic B&W for free
+                toggleModal('vipLockModal');
+                return;
+            }
+            downloadFreeBasicPDF();
+        }
+
+        // Always forces Basic B&W Theme and exports only the Free Normal CV
+        function downloadFreeBasicPDF() {
+            selectPreviewMode('basic');
+            setTimeout(() => {
+                exportSinglePagePDF('cv');
+            }, 120);
+        }
+
+        // Owner-Only Unlocked VIP PDF Export (Removes watermark and exports selected VIP theme or Cover Letter)
+        function ownerDownloadUnlockedPDF(docType) {
+            const cvWm = document.getElementById('cvWatermarkOverlay');
+            const clWm = document.getElementById('clWatermarkOverlay');
+            const keepWatermark = document.getElementById('watermarkToggle').checked;
+
+            if (docType === 'cl') {
+                selectPreviewMode('cl');
+                if (!keepWatermark) clWm.classList.add('hidden');
+            } else {
+                if (currentTheme === 'basic') {
+                    selectPreviewMode('royal');
+                }
+                if (!keepWatermark) cvWm.classList.add('hidden');
+            }
+
+            setTimeout(() => {
+                exportSinglePagePDF(docType);
+            }, 120);
+        }
+
+        // Core Single-Page Guaranteed PDF Export Engine
+        function exportSinglePagePDF(docType, callback) {
+            const targetId = docType === 'cl' ? 'clSheet' : 'cvSheet';
+            const sourceElement = document.getElementById(targetId);
+            const fullName = (document.getElementById('fullName').value.trim() || 'Applicant').replace(/\s+/g, '_');
+            const suffix = docType === 'cl' ? 'Cover_Letter' : (currentTheme === 'basic' ? 'Free_CV' : 'VIP_CV');
+            const fileName = `${fullName}_${suffix}.pdf`;
+
+            showToast('තනි පිටුවේ (Single-Page A4) PDF එක සකසමින් පවතී...');
+
+            const savedScrollX = window.scrollX || window.pageXOffset;
+            const savedScrollY = window.scrollY || window.pageYOffset;
+            window.scrollTo(0, 0);
+
+            const stage = document.createElement('div');
+            stage.style.position = 'fixed';
+            stage.style.top = '0px';
+            stage.style.left = '0px';
+            stage.style.width = '794px';
+            stage.style.height = '1122px';
+            stage.style.zIndex = '-9999';
+            stage.style.background = '#ffffff';
+            stage.style.overflow = 'hidden';
+            stage.style.margin = '0';
+            stage.style.padding = '0';
+
+            const clone = sourceElement.cloneNode(true);
+            clone.style.width = '794px';
+            clone.style.minHeight = '1122px';
+            clone.style.maxHeight = '1122px';
+            clone.style.height = '1122px';
+            clone.style.margin = '0';
+            clone.style.boxShadow = 'none';
+            clone.style.border = 'none';
+            clone.style.borderRadius = '0';
+            clone.style.overflow = 'hidden';
+
+            stage.appendChild(clone);
+            document.body.appendChild(stage);
+
+            const naturalHeight = clone.scrollHeight;
+            if (naturalHeight > 1122) {
+                const scaleRatio = 1116 / naturalHeight;
+                clone.style.transformOrigin = 'top left';
+                clone.style.transform = `scale(${scaleRatio})`;
+                clone.style.width = `${Math.ceil(794 / scaleRatio)}px`;
+                clone.style.height = `${Math.ceil(1122 / scaleRatio)}px`;
+                clone.style.maxHeight = 'none';
+            }
+
+            const opt = {
+                margin:       0,
+                filename:     fileName,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 794,
+                    windowHeight: 1122,
+                    width: 794,
+                    height: 1122,
+                    x: 0,
+                    y: 0
+                },
+                jsPDF:        { unit: 'px', format: [794, 1122], orientation: 'portrait', hotfixes: ['px_scaling'] }
+            };
+
+            html2pdf().set(opt).from(stage).save().then(() => {
+                document.body.removeChild(stage);
+                window.scrollTo(savedScrollX, savedScrollY);
+                showToast('තනි පිටුවේ PDF එක සාර්ථකව Download වුණා!');
+                if (typeof callback === 'function') callback();
+            }).catch(() => {
+                if (document.body.contains(stage)) document.body.removeChild(stage);
+                window.scrollTo(savedScrollX, savedScrollY);
+                showToast('PDF සැකසීමේ දෝෂයක්. නැවත උත්සාහ කරන්න.');
+            });
+        }
+
+        // Encode Client State & Send to Owner's WhatsApp (94789733432) for Rs. 600 VIP Service
+        function getClientPayloadObject() {
+            return {
+                n: document.getElementById('fullName').value,
+                j: document.getElementById('targetJobTitle').value,
+                p: document.getElementById('phone').value,
+                e: document.getElementById('email').value,
+                a: document.getElementById('address').value,
+                d: document.getElementById('dob').value,
+                nic: document.getElementById('nic').value,
+                nat: document.getElementById('nationality').value,
+                cs: document.getElementById('civilStatus').value,
+                lang: document.getElementById('languages').value,
+                sum: document.getElementById('profileSummary').value,
+                e1t: document.getElementById('edu1Title').value,
+                e1y: document.getElementById('edu1Year').value,
+                e1d: document.getElementById('edu1Details').value,
+                e2t: document.getElementById('edu2Title').value,
+                e2y: document.getElementById('edu2Year').value,
+                e2d: document.getElementById('edu2Details').value,
+                cert: document.getElementById('certifications').value,
+                x1r: document.getElementById('exp1Role').value,
+                x1d: document.getElementById('exp1Duration').value,
+                x1c: document.getElementById('exp1Company').value,
+                x1u: document.getElementById('exp1Duties').value,
+                x2r: document.getElementById('exp2Role').value,
+                x2d: document.getElementById('exp2Duration').value,
+                x2c: document.getElementById('exp2Company').value,
+                x2u: document.getElementById('exp2Duties').value,
+                r1n: document.getElementById('ref1Name').value,
+                r1t: document.getElementById('ref1Title').value,
+                r1o: document.getElementById('ref1Org').value,
+                r1p: document.getElementById('ref1Phone').value,
+                r1e: document.getElementById('ref1Email').value,
+                r2n: document.getElementById('ref2Name').value,
+                r2t: document.getElementById('ref2Title').value,
+                r2o: document.getElementById('ref2Org').value,
+                r2p: document.getElementById('ref2Phone').value,
+                r2e: document.getElementById('ref2Email').value
+            };
+        }
+
+        function orderVipViaWhatsApp() {
+            const ownerWa = getOwnerWaNumber();
+            const payload = getClientPayloadObject();
+            const encoded = 'LANKACV:' + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+
+            const msg = `ආයුබෝවන්! මම LankaCV Pro හරහා රු. 600 VIP Full Color ATS CV + Cover Letter පැකේජය ගන්න කැමතියි.\n\n*මගේ නම:* ${payload.n}\n*තනතුර:* ${payload.j}\n\n*Auto-Fill Code:* \n${encoded}`;
+            const url = `https://wa.me/${ownerWa}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
+        // Owner 1-Click Auto-Fill from WhatsApp Code
+        function importClientCode() {
+            const raw = document.getElementById('importCodeInput').value.trim();
+            const match = raw.match(/LANKACV:([A-Za-z0-9+/=]+)/);
+            if (!match) {
+                showToast('වලංගු LANKACV:... කේතයක් හමු නොවීය!');
+                return;
+            }
+            try {
+                const jsonStr = decodeURIComponent(escape(atob(match[1])));
+                const data = JSON.parse(jsonStr);
+
+                if (data.n !== undefined) document.getElementById('fullName').value = data.n;
+                if (data.j !== undefined) document.getElementById('targetJobTitle').value = data.j;
+                if (data.p !== undefined) document.getElementById('phone').value = data.p;
+                if (data.e !== undefined) document.getElementById('email').value = data.e;
+                if (data.a !== undefined) document.getElementById('address').value = data.a;
+                if (data.d !== undefined) document.getElementById('dob').value = data.d;
+                if (data.nic !== undefined) document.getElementById('nic').value = data.nic;
+                if (data.nat !== undefined) document.getElementById('nationality').value = data.nat;
+                if (data.cs !== undefined) document.getElementById('civilStatus').value = data.cs;
+                if (data.lang !== undefined) document.getElementById('languages').value = data.lang;
+                if (data.sum !== undefined) document.getElementById('profileSummary').value = data.sum;
+                if (data.e1t !== undefined) document.getElementById('edu1Title').value = data.e1t;
+                if (data.e1y !== undefined) document.getElementById('edu1Year').value = data.e1y;
+                if (data.e1d !== undefined) document.getElementById('edu1Details').value = data.e1d;
+                if (data.e2t !== undefined) document.getElementById('edu2Title').value = data.e2t;
+                if (data.e2y !== undefined) document.getElementById('edu2Year').value = data.e2y;
+                if (data.e2d !== undefined) document.getElementById('edu2Details').value = data.e2d;
+                if (data.cert !== undefined) document.getElementById('certifications').value = data.cert;
+                if (data.x1r !== undefined) document.getElementById('exp1Role').value = data.x1r;
+                if (data.x1d !== undefined) document.getElementById('exp1Duration').value = data.x1d;
+                if (data.x1c !== undefined) document.getElementById('exp1Company').value = data.x1c;
+                if (data.x1u !== undefined) document.getElementById('exp1Duties').value = data.x1u;
+                if (data.x2r !== undefined) document.getElementById('exp2Role').value = data.x2r;
+                if (data.x2d !== undefined) document.getElementById('exp2Duration').value = data.x2d;
+                if (data.x2c !== undefined) document.getElementById('exp2Company').value = data.x2c;
+                if (data.x2u !== undefined) document.getElementById('exp2Duties').value = data.x2u;
+                if (data.r1n !== undefined) document.getElementById('ref1Name').value = data.r1n;
+                if (data.r1t !== undefined) document.getElementById('ref1Title').value = data.r1t;
+                if (data.r1o !== undefined) document.getElementById('ref1Org').value = data.r1o;
+                if (data.r1p !== undefined) document.getElementById('ref1Phone').value = data.r1p;
+                if (data.r1e !== undefined) document.getElementById('ref1Email').value = data.r1e;
+                if (data.r2n !== undefined) document.getElementById('ref2Name').value = data.r2n;
+                if (data.r2t !== undefined) document.getElementById('ref2Title').value = data.r2t;
+                if (data.r2o !== undefined) document.getElementById('ref2Org').value = data.r2o;
+                if (data.r2p !== undefined) document.getElementById('ref2Phone').value = data.r2p;
+                if (data.r2e !== undefined) document.getElementById('ref2Email').value = data.r2e;
+
+                selectPreviewMode('royal');
+                document.getElementById('watermarkToggle').checked = false;
+                toggleSecurityWatermark();
+                renderAll();
+                showToast('පාරිභෝගිකයාගේ සියලුම විස්තර සාර්ථකව Auto-Fill වුණා!');
+            } catch (err) {
+                showToast('කේතය කියවීමේ දෝෂයක්! සම්පූර්ණ මැසේජ් එකම Paste කරන්න.');
+            }
+        }
+
+        // Load Complete Sample Client with Avatar Photo & Referees
+        function loadSampleClient() {
+            photoDataUrl = sampleAvatarSvg;
+            document.getElementById('includeRefereesToggle').checked = true;
+            document.getElementById('isFresherToggle').checked = false;
+            selectPreviewMode('basic');
+            renderAll();
+            showToast('Sample Client සාර්ථකව Load වුණා!');
+        }
+
+        window.onload = function() {
+            localStorage.setItem('lankacv_owner_wa', DEFAULT_OWNER_WA);
+            photoDataUrl = sampleAvatarSvg;
+            selectPreviewMode('basic');
+            renderAll();
+        };
+    </script>
+</body>
+</html>
